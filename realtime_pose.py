@@ -1,29 +1,17 @@
-import pose_media as pm
-import numpy as np
-import tensorflow as tf
 import cv2
-import time
+import pose_media as pm
 
-threshold = 0.5  # Threshold untuk menentukan aksi
-pTime = 0
-cTime = 0
-actions = np.array(["DRINKPIL", "NOACT"])  # Label aksi
 pose = pm.mediapipe_pose()  # Inisialisasi pose Mediapipe
 pt = pose.mp_holistic.Holistic()  # Gunakan holistic untuk mendeteksi pose
-new_model = tf.keras.models.load_model('minum_obat_new.h5')  # Load model yang sudah dilatih
-counter = 0  # Inisialisasi counter untuk menghitung aktivitas "minum obat"
 
-sequence = []
-sentence = []
-
-video_path="test/ngombeobat.mp4"
-
+# Inisialisasi VideoCapture untuk webcam (biasanya indeks 0)
 cap = cv2.VideoCapture(0)
 
+# Periksa apakah webcam berhasil dibuka
 if not cap.isOpened():
-    print("Error: Kamera tidak dapat diakses.")
+    print("Error: Tidak dapat membuka webcam.")
     exit()
-    
+        
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -37,38 +25,15 @@ while cap.isOpened():
         continue
 
     pose.draw_styled_landmarks(frame, results)
-    keypoints = pose.extract_keypoints(results)
-    sequence.append(keypoints)
-    sequence = sequence[-10:]  # Simpan hanya 30 frame terakhir
-
-    if len(sequence) == 10:
-        res = new_model.predict(np.expand_dims(sequence, axis=0))[0]
-        if res[np.argmax(res)] > threshold:
-            if len(sentence) > 0:
-                if actions[np.argmax(res)] != sentence[-1]:
-                    sentence.append(actions[np.argmax(res)])
-                    if actions[np.argmax(res)] == "DRINKPIL":
-                        counter += 1  # Tambahkan counter jika aksi "DRINKPIL" terdeteksi
-            else:
-                sentence.append(actions[np.argmax(res)])
-                if actions[np.argmax(res)] == "DRINKPIL":
-                    counter += 1  # Tambahkan counter jika aksi "DRINKPIL" terdeteksi
-        if len(sentence) > 1: 
-            sentence = sentence[-1:]
-    cTime = time.time()
-    fps = 1 / (cTime - pTime)
-    pTime = cTime
-
-    # cv2.putText(frame, "FPS: " + str(int(fps)), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
-    cv2.putText(frame, str(sentence), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
-    cv2.putText(frame, "Counter: " + str(counter), (450, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
-
     resizeImage = cv2.resize(frame, (640, 480))
-    cv2.imshow('Detect Action', resizeImage)
-    # if counter == 3 :
-    #     break
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
 
+    cv2.imshow('MediaPipe Pose & Hand Landmarks - Tekan q untuk keluar', resizeImage)
+
+    # Cek apakah tombol 'q' ditekan untuk keluar
+    if cv2.waitKey(5) & 0xFF == ord('q'):
+        print("Keluar dari program...")
+        break
+    
+# Setelah loop selesai, lepaskan VideoCapture dan tutup semua jendela OpenCV
 cap.release()
 cv2.destroyAllWindows()
