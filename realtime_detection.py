@@ -10,7 +10,7 @@ cTime = 0
 actions = np.array(["DRINKPIL", "NOACT"])  # Label aksi
 pose = pm.mediapipe_pose()  # Inisialisasi pose Mediapipe
 pt = pose.mp_holistic.Holistic()  # Gunakan holistic untuk mendeteksi pose
-new_model = tf.keras.models.load_model('minum_obat(2).h5')  # Load model yang sudah dilatih
+new_model = tf.keras.models.load_model('weight\minum_obat(3).h5.h5')  # Load model yang sudah dilatih
 counter = 0  # Inisialisasi counter untuk menghitung aktivitas "minum obat"
 
 sequence = []
